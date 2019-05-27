@@ -137,12 +137,17 @@
     (let ((candidates-size (mozc-protobuf-get candidates 'size))
           (index-visible (mozc-protobuf-get candidates 'footer 'index-visible)))
 
-      (when (and index-visible focused-index candidates-size)
-        (let ((index-label (format "%d/%d" (1+ focused-index) candidates-size)))
-          (setq footer-label
-                (format (concat "%" (number-to-string
-                                     (max max-width (string-width index-label))) "s")
-                        index-label))))
+      (if (and index-visible focused-index candidates-size)
+          (let ((index-label (format "%d/%d" (1+ focused-index) candidates-size)))
+            (setq footer-label
+                  (format (concat "%" (number-to-string
+                                       (max max-width (string-width index-label))) "s")
+                          index-label)))
+        (setq footer-label
+              (concat
+               footer-label
+               (cl-loop repeat (max 0 (- max-width (string-width footer-label)))
+                        concat " "))))
 
       (mozc-cand-posframe-clear)
       (mozc-posframe--render (mozc-protobuf-get candidates 'candidate) footer-label focused-index)
