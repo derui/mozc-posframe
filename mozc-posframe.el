@@ -87,12 +87,16 @@
           (mozc-posframe--apply-face (if shortcut
                                          (concat shortcut
                                                  mozc-cand-posframe-shortcut-spacer
-                                                 value)
+                                                 value
+                                                 (if description
+                                                     (concat
+                                                      (cl-loop repeat mozc-cand-posframe-description-space
+                                                               concat " ")
+                                                      description)
+                                                   ""))
                                        value)
                                      (mozc-posframe--get-item-face index focused-index)))
-         (newline))
-
-       )
+         (newline)))
      candidates)
     (when footer-label
       (insert (mozc-posframe--apply-face footer-label 'mozc-cand-overlay-footer-face)))))
