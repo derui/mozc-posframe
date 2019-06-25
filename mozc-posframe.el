@@ -158,6 +158,7 @@
       (posframe-show (mozc-posframe--get-buffer)
                      :position mozc-cand-posframe-position))))
 
+;;;###autoload
 (defun mozc-cand-posframe-update (candidates)
   (unless mozc-cand-posframe-position
     (setq mozc-cand-posframe-position (posn-point mozc-preedit-posn-origin)))
@@ -171,10 +172,12 @@
      ;; Fall back to the echo area version.
      (mozc-cand-echo-area-update candidates))))
 
+;;;###autoload
 (defun mozc-cand-posframe-clear ()
   (with-current-buffer (mozc-posframe--get-buffer)
     (erase-buffer)))
 
+;;;###autoload
 (defun mozc-cand-posframe-clean-up ()
   (with-current-buffer (mozc-posframe--get-buffer)
     (erase-buffer))
