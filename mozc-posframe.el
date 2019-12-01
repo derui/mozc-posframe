@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019  Yuya Takahashi
 
 ;; Author: Yuya Takahashi <derutakayu@gmail.com>
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords: i18n, extentions
 ;; Package-Requires: ((posframe "0.4.3") (mozc "0"))
 
@@ -66,34 +66,37 @@
         'mozc-cand-overlay-even-face
       'mozc-cand-overlay-odd-face)))
 
-(defun mozc-posframe--render (candidates footer-label focused-index)
+(defun mozc-posframe--render (candidates footer-label focused-index max-width)
   "render candidates to posframe's buffer"
   ;; render candidates
   (with-current-buffer (mozc-posframe--get-buffer)
     (mapc
      (lambda (candidate)
-       (let ((index (mozc-protobuf-get candidate 'index))
-             (value (mozc-protobuf-get candidate 'value))
-             (description (mozc-protobuf-get candidate 'annotation 'description))
-             (shortcut (mozc-protobuf-get candidate 'annotation 'shortcut)))
+       (let* ((index (mozc-protobuf-get candidate 'index))
+              (value (mozc-protobuf-get candidate 'value))
+              (description (mozc-protobuf-get candidate 'annotation 'description))
+              (shortcut (mozc-protobuf-get candidate 'annotation 'shortcut))
+              (label (if shortcut
+                         (concat shortcut
+                                 mozc-cand-posframe-shortcut-spacer
+                                 value
+                                 (if description
+                                     (concat
+                                      (cl-loop repeat mozc-cand-posframe-description-space
+                                               concat " ")
+                                      description)
+                                   ""))
+                       value)))
          (insert
-          (mozc-posframe--apply-face (if shortcut
-                                         (concat shortcut
-                                                 mozc-cand-posframe-shortcut-spacer
-                                                 value
-                                                 (if description
-                                                     (concat
-                                                      (cl-loop repeat mozc-cand-posframe-description-space
-                                                               concat " ")
-                                                      description)
-                                                   ""))
-                                       value)
+          (mozc-posframe--apply-face (concat label (cl-loop repeat (max 0 (- max-width (string-width label)))
+                                                            concat " "))
                                      (mozc-posframe--get-item-face index focused-index)))
          (newline)))
      candidates)
     (when footer-label
       (insert (mozc-posframe--apply-face footer-label 'mozc-cand-overlay-footer-face)))))
 
+;;;###autoload
 (defun mozc-cand-posframe-draw (candidates)
   (let ((footer-label (mozc-protobuf-get candidates 'footer 'label))
         (focused-index (mozc-protobuf-get candidates 'focused-index))
@@ -147,7 +150,8 @@
                         concat " "))))
 
       (mozc-cand-posframe-clear)
-      (mozc-posframe--render (mozc-protobuf-get candidates 'candidate) footer-label focused-index)
+      (mozc-posframe--render (mozc-protobuf-get candidates 'candidate) footer-label focused-index
+                             (string-width footer-label))
       (posframe-show (mozc-posframe--get-buffer)
                      :position mozc-cand-posframe-position))))
 
