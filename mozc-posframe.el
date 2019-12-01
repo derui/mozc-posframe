@@ -38,13 +38,6 @@
 (require 'mozc)
 (require 'posframe)
 
-(unless (assoc 'posframe mozc-candidate-dispatch-table)
-  (add-to-list 'mozc-candidate-dispatch-table
-               '(posframe
-                 (clean-up . mozc-cand-posframe-clean-up)
-                 (clear . mozc-cand-posframe-clear)
-                 (update . mozc-cand-posframe-update))))
-
 (defvar mozc-posframe-buffer-name " *Mozc Posframe*"
   "Name of the buffer to render candidates")
 
@@ -183,6 +176,16 @@
     (erase-buffer))
   (setq mozc-cand-posframe-position nil)
   (posframe-hide mozc-posframe-buffer-name))
+
+;;;###autoload
+(defun mozc-posframe-register ()
+  "Register mozc-posframe to mozc candidate dispatch table"
+  (unless (assoc 'posframe mozc-candidate-dispatch-table)
+    (add-to-list 'mozc-candidate-dispatch-table
+                 '(posframe
+                   (clean-up . mozc-cand-posframe-clean-up)
+                   (clear . mozc-cand-posframe-clear)
+                   (update . mozc-cand-posframe-update)))))
 
 (provide 'mozc-posframe)
 
