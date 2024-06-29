@@ -9,20 +9,17 @@ This package is not on ELPA/MELPA yet.
 ```emacs-lisp
 ;; download mozc-posframe.el and place it at your load-path.
 (require 'mozc-posframe)
-(mozc-posframe-register)
 (setq mozc-candidate-style 'posframe)
 
 ;; Or if you enabled straight.el integration for use-package
 (use-package mozc-posframe
   :straight (mozc-posframe :type git :host github :repo "derui/mozc-posframe")
-  :config
-  (mozc-posframe-register))
+  :require t)
 
 ;; Or if you use leaf.el
 (leaf mozc-posframe
   :straight (mozc-posframe :type git :host github :repo "derui/mozc-posframe")
-  :config
-  (mozc-posframe-register))
+  :require t)
 ```
 
 # LICENSE #

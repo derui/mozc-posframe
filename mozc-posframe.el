@@ -1,9 +1,9 @@
 ;;; mozc-posframe.el --- Mozc with posframe
 
-;; Copyright (C) 2019  Yuya Takahashi
+;; Copyright (C) 2019-2024  Yuya Takahashi
 
 ;; Author: Yuya Takahashi <derutakayu@gmail.com>
-;; Version: 0.2
+;; Version: 0.3
 ;; Keywords: i18n, extentions
 ;; Package-Requires: ((posframe "0.4.3") (mozc "0"))
 
@@ -46,9 +46,6 @@
   "Face for description part of overlay candidate window."
   :group 'mozc-faces)
 
-(defvar mozc-cand-posframe-position nil)
-(make-variable-buffer-local 'mozc-cand-posframe-position)
-
 (defconst mozc-cand-posframe-shortcut-spacer ". ")
 (defconst mozc-cand-posframe-description-space 3)
 
@@ -70,6 +67,7 @@
   "render candidates to posframe's buffer"
   ;; render candidates
   (with-current-buffer (mozc-posframe--get-buffer)
+    (goto-char (point-min))
     (mapc
      (lambda (candidate)
        (let* ((index (mozc-protobuf-get candidate 'index))
@@ -94,7 +92,10 @@
          (newline)))
      candidates)
     (when footer-label
-      (insert (mozc-posframe--apply-face footer-label 'mozc-cand-overlay-footer-face)))))
+      (insert (mozc-posframe--apply-face footer-label 'mozc-cand-overlay-footer-face)))
+    (delete-region (point) (point-max))
+    )
+  )
 
 ;;;###autoload
 (defun mozc-cand-posframe-draw (candidates)
@@ -134,8 +135,12 @@
                               max-width))))
      (mozc-protobuf-get candidates 'candidate))
 
-    (let ((candidates-size (mozc-protobuf-get candidates 'size))
-          (index-visible (mozc-protobuf-get candidates 'footer 'index-visible)))
+    (let* ((candidates-size (mozc-protobuf-get candidates 'size))
+           (index-visible (mozc-protobuf-get candidates 'footer 'index-visible))
+           (x-offset (+ (- (car (window-text-pixel-size nil
+                                                        (overlay-start mozc-preedit-overlay)
+                                                        (overlay-end mozc-preedit-overlay))))
+                        (line-number-display-width t))))
 
       (if (and index-visible focused-index candidates-size)
           (let ((index-label (format "%d/%d" (1+ focused-index) candidates-size)))
@@ -149,17 +154,13 @@
                (cl-loop repeat (max 0 (- max-width (string-width footer-label)))
                         concat " "))))
 
-      (mozc-cand-posframe-clear)
       (mozc-posframe--render (mozc-protobuf-get candidates 'candidate) footer-label focused-index
                              (string-width footer-label))
       (posframe-show (mozc-posframe--get-buffer)
-                     :position mozc-cand-posframe-position))))
+                     :x-pixel-offset x-offset))))
 
 ;;;###autoload
 (defun mozc-cand-posframe-update (candidates)
-  (unless mozc-cand-posframe-position
-    (setq mozc-cand-posframe-position (posn-point mozc-preedit-posn-origin)))
-
   (condition-case nil
       (when (posframe-workable-p)
         (mozc-with-buffer-modified-p-unchanged
@@ -178,18 +179,18 @@
 (defun mozc-cand-posframe-clean-up ()
   (with-current-buffer (mozc-posframe--get-buffer)
     (erase-buffer))
-  (setq mozc-cand-posframe-position nil)
   (posframe-hide mozc-posframe-buffer-name))
 
-;;;###autoload
-(defun mozc-posframe-register ()
-  "Register mozc-posframe to mozc candidate dispatch table"
-  (unless (assoc 'posframe mozc-candidate-dispatch-table)
-    (add-to-list 'mozc-candidate-dispatch-table
-                 '(posframe
-                   (clean-up . mozc-cand-posframe-clean-up)
-                   (clear . mozc-cand-posframe-clear)
-                   (update . mozc-cand-posframe-update)))))
+(with-eval-after-load 'posframe
+  (with-eval-after-load 'mozc
+    (when (and (functionp 'posframe-workable-p)
+               (posframe-workable-p))
+      (add-to-list 'mozc-candidate-dispatch-table
+                   '(posframe
+                     (clean-up . mozc-cand-posframe-clean-up)
+                     (clear . mozc-cand-posframe-clear)
+                     (update . mozc-cand-posframe-update))))
+    ))
 
 (provide 'mozc-posframe)
 
