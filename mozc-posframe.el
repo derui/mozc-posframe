@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019-2024  Yuya Takahashi
 
 ;; Author: Yuya Takahashi <derutakayu@gmail.com>
-;; Version: 0.3
+;; Version: 0.4
 ;; Keywords: i18n, extentions
 ;; Package-Requires: ((posframe "0.4.3") (mozc "0"))
 
@@ -181,16 +181,14 @@
     (erase-buffer))
   (posframe-hide mozc-posframe-buffer-name))
 
-(with-eval-after-load 'posframe
-  (with-eval-after-load 'mozc
-    (when (and (functionp 'posframe-workable-p)
-               (posframe-workable-p))
-      (add-to-list 'mozc-candidate-dispatch-table
-                   '(posframe
-                     (clean-up . mozc-cand-posframe-clean-up)
-                     (clear . mozc-cand-posframe-clear)
-                     (update . mozc-cand-posframe-update))))
-    ))
+;;;###autoload
+(when (and (functionp 'posframe-workable-p)
+           (posframe-workable-p))
+  (add-to-list 'mozc-candidate-dispatch-table
+               '(posframe
+                 (clean-up . mozc-cand-posframe-clean-up)
+                 (clear . mozc-cand-posframe-clear)
+                 (update . mozc-cand-posframe-update))))
 
 (provide 'mozc-posframe)
 
