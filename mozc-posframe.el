@@ -182,13 +182,15 @@
   (posframe-hide mozc-posframe-buffer-name))
 
 ;;;###autoload
-(when (and (functionp 'posframe-workable-p)
-           (posframe-workable-p))
-  (add-to-list 'mozc-candidate-dispatch-table
-               '(posframe
-                 (clean-up . mozc-cand-posframe-clean-up)
-                 (clear . mozc-cand-posframe-clear)
-                 (update . mozc-cand-posframe-update))))
+(defun mozc-posframe-initialize ()
+  "Initialize mozc-posframe to add `mozc-candidate-dispatch-table'"
+  (when (and (functionp 'posframe-workable-p)
+             (posframe-workable-p))
+    (add-to-list 'mozc-candidate-dispatch-table
+                 '(posframe
+                   (clean-up . mozc-cand-posframe-clean-up)
+                   (clear . mozc-cand-posframe-clear)
+                   (update . mozc-cand-posframe-update)))))
 
 (provide 'mozc-posframe)
 
